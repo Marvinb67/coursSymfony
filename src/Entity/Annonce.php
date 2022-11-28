@@ -6,6 +6,7 @@ use App\Repository\AnnonceRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Cocur\Slugify\Slugify;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AnnonceRepository::class), ORM\HasLifecycleCallbacks]
 class Annonce
@@ -25,6 +26,7 @@ class Annonce
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\Length(min: 40, maxMessage: "La description doit faire plus de {{ limit }} charactères")]
     private ?string $description = null;
 
     #[ORM\Column]
@@ -44,6 +46,14 @@ class Annonce
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $updatedAt = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Url(protocols: ['http', 'https'])]
+    private ?string $imageUrl = null;
+
+    #[ORM\ManyToOne(inversedBy: 'annonces')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
 
     #[ORM\PrePersist]
     public function prePersist()
@@ -138,7 +148,7 @@ class Annonce
 
     public function getSlug(): ?string
     {
-        if (!$this->slug) {
+        if (!$this->slug && $this->title !== null) {
             $this->setSlug($this->title);
         }
         return $this->slug;
@@ -161,6 +171,30 @@ class Annonce
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function getImageUrl(): ?string
+    {
+        return $this->imageUrl;
+    }
+
+    public function setImageUrl(?string $imageUrl): self
+    {
+        $this->imageUrl = $imageUrl;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): self
+    {
+        $this->user = $user;
 
         return $this;
     }

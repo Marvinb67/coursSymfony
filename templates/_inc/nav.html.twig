@@ -1,3 +1,4 @@
+{{ dump(app.user) }}
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <a class="navbar-brand" href="#">Duckzon</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
@@ -7,13 +8,11 @@
 
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-                <a class="nav-link" href="#">Home
-                    <span class="sr-only">(current)</span>
-                </a>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ path('app_annonce_index')}}">Annonces</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">Annonces</a>
+                <a class="nav-link" href="{{ path('app_annonce_new')}}">New Annonce</a>
             </li>
 
         </ul>
@@ -24,11 +23,21 @@
                     Mon profil
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item" href="#">Logout</a>
-                    <a class="dropdown-item" href="#">Login</a>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="#">Register</a>
+                    {% if app.user %}
+                        <a class="dropdown-item" href="{{ path('app_logout')}}">Logout</a>
+                    {% else%}
+                        <a class="dropdown-item" href="{{ path('app_login')}}">Login</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{{ path('app_register')}}">Register</a>
+                    {% endif %}
                 </div>
+            </li>
+            <li>
+                {% if app.user %}
+                    <a class="btn btn-primary" href="{{ path('app_logout')}}">Logout</a>
+                {% else %}
+                    <a class="btn btn-primary" href="{{ path('app_login')}}">Login</a>
+                {% endif %}
             </li>
         </ul>
     </div>

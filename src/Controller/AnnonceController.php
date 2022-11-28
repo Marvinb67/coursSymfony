@@ -2,9 +2,12 @@
 
 namespace App\Controller;
 
+use App\Form\AnnonceType;
 use App\Repository\AnnonceRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\Annonce;
@@ -14,49 +17,43 @@ class AnnonceController extends AbstractController
 
 
     #[Route('/annonce')]
-    public function index(AnnonceRepository $annonceRepository): Response
+    public function index(AnnonceRepository $annonceRepository, PaginatorInterface $paginator, Request $request): Response
     {
-//        // rechercher une annonce par ID
-//        $annonce = $annonceRepository->find(1);
-//
-//
-//        // recherche toutes les annonces
-//        $annonce = $annonceRepository->findAll();
-//
-//        // recherche une annonce par champ
-//        $annonce = $annonceRepository->findOneBy(['sold' => false]);
-
-        $annonces = $annonceRepository->findLatestNotSold();
+        $annonces = $paginator->paginate(
+            $annonceRepository->findAllNotSoldQuery(),
+            $request->query->getInt('page', 1),
+            12
+        );
 
         return $this->render('annonce/index.html.twig', [
-            'title' => 'Bienvenue sur Duckzon',
             'annonces' => $annonces
         ]);
     }
 
-    #[Route('/annonce/new')]
-    public function new(ManagerRegistry $doctrine)
+    /**
+     * @Route("/annonce/new")
+     *
+     * @return void
+     */
+    public function new(Request $request, EntityManagerInterface $em)
     {
         $annonce = new Annonce();
-        $annonce
-            ->setTitle('Chien')
-            ->setDescription('Vends car plus d\'utilité')
-            ->setPrice(1200)
-            ->setStatus(Annonce::STATUS_GOOD)
-            ->setSold(false)
-            ->setSlug('Vends Super Canard trouvé en boulangerie-pâtisserie')
-        ;
 
-        // On récupère l'EntityManager
-        $em = $doctrine->getManager();
-        // On « persiste » l'entité
-        $em->persist($annonce);
-        // On envoie tout ce qui a été persisté avant en base de données
-        $em->flush();
+        $form = $this->createForm(AnnonceType::class, $annonce);
+        $form->handleRequest($request);
 
-        die ('annonce bien créée');
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em->persist($annonce);
+            $em->flush();
+            return $this->redirectToRoute('app_annonce_index');
+        }
 
+        return $this->render('annonce/new.html.twig', [
+            'annonce' => $annonce,
+            'form' => $form->createView()
+        ]);
     }
+
 
     #[Route('/annonce/{id}')]
     public function show(int $id, AnnonceRepository $annonceRepo)

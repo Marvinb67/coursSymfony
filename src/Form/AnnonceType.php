@@ -3,8 +3,11 @@
 namespace App\Form;
 
 use App\Entity\Annonce;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
+use \Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class AnnonceType extends AbstractType
@@ -16,9 +19,20 @@ class AnnonceType extends AbstractType
             ->add('description')
             ->add('price')
             ->add('sold')
-            ->add('status')
-            ->add('createdAt')
+            ->add('status', ChoiceType::class,[
+                "choices" => [
+                    "Très mauvais" => Annonce::STATUS_VERY_BAD,
+                    "Mauvais" => Annonce::STATUS_BAD,
+                    "Bon" => Annonce::STATUS_GOOD,
+                    "Très bon" => Annonce::STATUS_VERY_GOOD,
+                    "Parfait" => Annonce::STATUS_PERFECT,
+                ]
+            ])
+            ->add('createdAt', DateType::class, [
+                'widget' => 'single_text'
+            ])
             ->add('slug')
+            ->add('imageUrl')
         ;
     }
 

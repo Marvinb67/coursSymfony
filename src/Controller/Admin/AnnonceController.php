@@ -29,6 +29,21 @@ class AnnonceController extends AbstractController
     }
 
     /**
+     * @Route("/annonce/{id}", methods="DELETE")
+     */
+    public function delete(Annonce $annonce, EntityManagerInterface $em, Request $request)
+    {
+        if($this->isCsrfTokenValid('delete', $annonce->getId(), $request->get('_token')))
+        {
+            // on supprime l'annonce de l'ObjetManager
+            $em->remove($annonce);
+            // en envoie la requête en base de données
+            $em->flush();
+        }
+        return $this->redirectToRoute('app_admin_annonce_index');
+    }
+
+    /**
      * @Route("/annonce/{id}/edit")
      */
     public function edit(Annonce $annonce, Request $request, EntityManagerInterface $em)
@@ -38,15 +53,15 @@ class AnnonceController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
+            $this->addFlash('success', 'Annonce modifiée avec succès');
             return $this->redirectToRoute('app_admin_annonce_index');
         }
-            
+
         return $this->render('admin/annonce/edit.html.twig', [
             'annonce' => $annonce,
             'form' => $form->createView()
         ]);
     }
 
-    
-    
+
 }
